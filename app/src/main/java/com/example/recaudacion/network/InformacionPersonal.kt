@@ -9,5 +9,6 @@ data class InformacionPersonal(
     @SerialName("nombre") val nombre: String,
     @SerialName("banco") val banco: String,
     @SerialName("moneda") val moneda: String,
-    @SerialName("nroCuenta") val nroCuenta: Long
+    @SerialName("nroCuenta") val nroCuenta: Long,
+    @SerialName("otro") val otro: Long
 )
