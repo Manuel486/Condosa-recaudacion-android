@@ -226,6 +226,7 @@ fun FormReceipt(
             label = { Text(text = "N° recibo") },
             value = nroRecibo.value,
             singleLine = true,
+            placeholder = { Text(text = "REC0001",color=Color.LightGray ) },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
             onValueChange = { nroRecibo.value = it },
             colors = TextFieldDefaults.textFieldColors(
@@ -305,6 +306,7 @@ fun FormReceipt(
                 value = nrOperacion.value,
                 singleLine = true,
                 enabled = true,
+                placeholder = { Text(text = "202002118",color=Color.LightGray ) },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 onValueChange = { nrOperacion.value = it },
                 colors = TextFieldDefaults.textFieldColors(
@@ -364,6 +366,7 @@ fun FormReceipt(
                 value = importeRecaudacion.value,
                 singleLine = true,
                 enabled = true,
+                placeholder = { Text(text = "0.0",color=Color.LightGray ) },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 onValueChange = { importeRecaudacion.value = it },
                 colors = TextFieldDefaults.textFieldColors(

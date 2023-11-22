@@ -46,6 +46,8 @@ class RegistroViewModel : ViewModel() {
                 _errorMessage.value = "Error de red. Inténtelo de nuevo más tarde."
             } catch (e: HttpException) {
                 if (e.code() == 500) {
+                    _errorMessage.value = "Error interno en el servidor."
+                } else if (e.code() == 404){
                     _errorMessage.value = "El nro de recibo no existe."
                 } else {
                     _errorMessage.value = "Ha ocurrido un error. Inténtelo de nuevo más tarde."
