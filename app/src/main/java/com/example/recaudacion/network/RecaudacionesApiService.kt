@@ -2,8 +2,12 @@ package com.example.recaudacion.network
 
 import retrofit2.converter.moshi.MoshiConverterFactory
 import okhttp3.OkHttpClient
+import okhttp3.ResponseBody
+import retrofit2.Response
 import retrofit2.Retrofit
+import retrofit2.http.Body
 import retrofit2.http.GET
+import retrofit2.http.POST
 import retrofit2.http.Path
 
 private const val BASE_URL =
@@ -26,9 +30,11 @@ interface CollectionsApiService {
     @GET("predio/predio_ruc/{ruc}")
     suspend fun getPredio(@Path("ruc") ruc: String): Predio
 
-    @GET("mant_recibo/nro_recibo/{recibo}")
+    @GET("mant_recibo/nro_recibo/recaudacion/{recibo}")
     suspend fun getMantenimientoRecibo(@Path("recibo") recibo: String): MantenimientoRecibo
 
+    @POST("recaudacion/guardar")
+    suspend fun guardarRecaudacion(@Body recaudacion: RecaudacionDTO): Response<ResponseBody>
 }
 
 object CollectionsApi {

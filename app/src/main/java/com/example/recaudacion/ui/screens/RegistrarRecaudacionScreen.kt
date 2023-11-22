@@ -1,8 +1,10 @@
 package com.example.recaudacion.ui.screens
 
+import android.app.DatePickerDialog
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -21,6 +23,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -28,6 +31,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
@@ -36,6 +40,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -52,11 +57,20 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.recaudacion.R
 import com.example.recaudacion.navigation.AppScreens
-
+import com.example.recaudacion.network.CuentaDTO
+import com.example.recaudacion.network.CuentaPredioDTO
+import com.example.recaudacion.network.MantenimientoReciboDTO
+import com.example.recaudacion.network.RecaudacionDTO
+import com.example.recaudacion.network.RecaudacionEstadoDTO
+import com.example.recaudacion.network.TipoMonedaDTO
+import java.util.Calendar
 
 
 @Composable
-fun RegisterCollection1PageScreen(registroViewModel: RegistroViewModel, navController: NavController) {
+fun RegisterCollection1PageScreen(
+    registroViewModel: RegistroViewModel,
+    navController: NavController
+) {
     var currentIndex by remember { mutableStateOf(0) }
 
     Column(
@@ -68,59 +82,7 @@ fun RegisterCollection1PageScreen(registroViewModel: RegistroViewModel, navContr
     ) {
         Header(navController = navController)
         Spacer(modifier = Modifier.height(20.dp))
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            // Botón "Anterior"
-            if (currentIndex > 0) {
-                /*Button(
-                    onClick = {
-                        currentIndex--
-                    }
-                ) {
-                    Text("Anterior")
-                }*/
-                IconButton(
-                    onClick = { currentIndex-- }
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.ArrowBack,
-                        contentDescription = "Close",
-                        tint = Color.Black,
-                        modifier = Modifier.size(70.dp)
-                    )
-                }
-            }
-        }
-
-        when (currentIndex) {
-            0 -> FormNroDocumento(registroViewModel ,navController, currentIndex) {
-                if (currentIndex < 3) {
-                    currentIndex++
-                }
-            }
-            1 -> FormRuc(registroViewModel ,navController, currentIndex) {
-                if (currentIndex < 3) {
-                    currentIndex++
-                }
-            }
-            2 -> FormReceipt(registroViewModel,navController, currentIndex) {
-                if (currentIndex < 3) {
-                    currentIndex++
-                }
-            }
-            3 -> FormCollection(registroViewModel ,navController ,currentIndex) {
-                if (currentIndex < 3) {
-                    currentIndex++
-                }
-            }
-            else -> FormNroDocumento(registroViewModel ,navController, currentIndex) {
-                if (currentIndex < 3) {
-                    currentIndex++
-                }
-            }
-        }
+        FormReceipt(registroViewModel, navController, currentIndex) {}
     }
 }
 
@@ -198,198 +160,6 @@ fun Header(navController: NavController) {
     }
 }
 
-@Composable
-fun FormStatus(imageRes: Int, title: String) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(10.dp) ,
-        horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally,
-
-    ) {
-        Spacer(modifier = Modifier.height(20.dp))
-        Image(
-            painter = painterResource(imageRes),
-            contentDescription = "Barra de progreso"
-        )
-        Spacer(modifier = Modifier.height(20.dp))
-        Text(
-            text = title,
-            fontWeight = FontWeight.Bold,
-            style = TextStyle(fontSize = 30.sp),
-            textAlign = TextAlign.Center
-        )
-        Spacer(modifier = Modifier.height(20.dp))
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun FormNroDocumento(registroViewModel: RegistroViewModel, navController: NavController, currentIndex: Int, onNext: () -> Unit){
-    FormStatus(imageRes = R.drawable.barradeprogreso1, title = "Información personal")
-    Column(
-        modifier = Modifier
-            .fillMaxWidth(),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally
-    ) {
-
-        /*
-        val nroDocumento = remember { mutableStateOf(TextFieldValue()) }
-        val nombre = remember { mutableStateOf(TextFieldValue()) }
-        val banco = remember { mutableStateOf(TextFieldValue()) }
-        val moneda = remember { mutableStateOf(TextFieldValue()) }
-        val nroCuenta = remember { mutableStateOf(TextFieldValue()) }
-         */
-
-        val nroDocumento = remember { mutableStateOf(TextFieldValue()) }
-        var nombre = registroViewModel.registerUiState.nombre
-        var banco = registroViewModel.registerUiState.banco
-        var moneda = registroViewModel.registerUiState.moneda
-        var cuenta = registroViewModel.registerUiState.nroCuenta
-
-        TextField(
-            label = { Text(text = "Nro. Documento") },
-            value = nroDocumento.value,
-            singleLine = true,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-            onValueChange = { nroDocumento.value = it },
-            colors = TextFieldDefaults.textFieldColors(
-                containerColor = Color.Transparent,
-                focusedIndicatorColor = Color.Transparent,
-                unfocusedIndicatorColor = Color.Transparent
-            ),
-            modifier = Modifier
-                .fillMaxWidth()
-                .border(1.dp, Color.Black, RoundedCornerShape(8.dp))
-
-        )
-        Spacer(modifier = Modifier.height(25.dp))
-        Button(
-            onClick = {
-                registroViewModel.getCuentaPorNroDocumento(nroDocumento.value)
-            },
-            modifier = Modifier.width(200.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF000080))
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Search,
-                    contentDescription = "Search",
-                    tint = Color.White,
-                    modifier = Modifier.size(20.dp) // Tamaño del icono
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(text = "Buscar")
-            }
-        }
-
-        Spacer(modifier = Modifier.height(35.dp))
-        TextField(
-            label = { Text(text = "Nombre") },
-            value = nombre,
-            singleLine = true,
-            enabled = false,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
-            onValueChange = { nombre = it },
-            colors = TextFieldDefaults.textFieldColors(
-                focusedIndicatorColor = Color.Transparent,
-                unfocusedIndicatorColor = Color.Transparent
-            ),
-            modifier = Modifier
-                .fillMaxWidth()
-                .border(1.dp, Color.Black, RoundedCornerShape(8.dp))
-
-        )
-        Spacer(modifier = Modifier.height(25.dp))
-
-        TextField(
-            label = { Text(text = "Banco") },
-            value = banco,
-            singleLine = true,
-            enabled = false,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
-            onValueChange = { banco = it },
-            colors = TextFieldDefaults.textFieldColors(
-                focusedIndicatorColor = Color.Transparent,
-                unfocusedIndicatorColor = Color.Transparent
-            ),
-            modifier = Modifier
-                .fillMaxWidth()
-                .border(1.dp, Color.Black, RoundedCornerShape(8.dp))
-
-        )
-        Spacer(modifier = Modifier.height(25.dp))
-
-        TextField(
-            label = { Text(text = "Moneda") },
-            value = moneda,
-            singleLine = true,
-            enabled = false,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
-            onValueChange = { moneda = it },
-            colors = TextFieldDefaults.textFieldColors(
-                focusedIndicatorColor = Color.Transparent,
-                unfocusedIndicatorColor = Color.Transparent
-            ),
-            modifier = Modifier
-                .fillMaxWidth()
-                .border(1.dp, Color.Black, RoundedCornerShape(8.dp))
-
-        )
-        Spacer(modifier = Modifier.height(25.dp))
-
-        TextField(
-            label = { Text(text = "Nro. Cuenta") },
-            value = cuenta.toString(),
-            singleLine = true,
-            enabled = false,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-            onValueChange = {  },
-            colors = TextFieldDefaults.textFieldColors(
-                focusedIndicatorColor = Color.Transparent,
-                unfocusedIndicatorColor = Color.Transparent
-            ),
-            modifier = Modifier
-                .fillMaxWidth()
-                .border(1.dp, Color.Black, RoundedCornerShape(8.dp))
-
-        )
-        Spacer(modifier = Modifier.height(25.dp))
-
-        // Observa si hay un mensaje de error y muestra una alerta en consecuencia
-        val errorMessage = registroViewModel.errorMessage
-        if (errorMessage.value.isNotEmpty()) {
-            mostrarAlerta("Error", errorMessage = errorMessage.value,registroViewModel)
-        }
-
-
-        Box(modifier = Modifier.padding(40.dp, 0.dp, 40.dp, 0.dp)) {
-            Button(
-                onClick = {
-                    if(registroViewModel.registerUiState.idCuenta != 0){
-                        onNext()
-                    }
-                },
-                colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent, contentColor = Color(0xFF000080)),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(50.dp)
-                    .width(100.dp)
-                    .border(
-                        width = 2.dp,
-                        color = Color(0xFF000080),
-                        shape = RoundedCornerShape(15.dp)
-                    )
-            ) {
-                Text(text = "Siguiente")
-            }
-        }
-    }
-}
 
 @Composable
 fun mostrarAlerta(titulo: String, errorMessage: String, registroViewModel: RegistroViewModel) {
@@ -399,7 +169,8 @@ fun mostrarAlerta(titulo: String, errorMessage: String, registroViewModel: Regis
         text = { Text(text = errorMessage) },
         confirmButton = {
             TextButton(onClick = {
-                registroViewModel.clearErrorMessage() }) {
+                registroViewModel.clearErrorMessage()
+            }) {
                 Text("Aceptar")
             }
         }
@@ -409,206 +180,23 @@ fun mostrarAlerta(titulo: String, errorMessage: String, registroViewModel: Regis
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FormRuc(registroViewModel: RegistroViewModel, navController: NavController, currentIndex: Int, onNext: () -> Unit){
-    FormStatus(imageRes = R.drawable.barradeprogreso2, title = "Información del predio")
-    Column(
-        modifier = Modifier
-            .fillMaxWidth(),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally
-    ) {
+fun FormReceipt(
+    registroViewModel: RegistroViewModel,
+    navController: NavController,
+    currentIndex: Int,
+    onNext: () -> Unit
+) {
+    val context = LocalContext.current.applicationContext
 
-        val ruc = remember { mutableStateOf(TextFieldValue()) }
-        var nombrePredio = registroViewModel.registerUiState.nombrePredio
-        var direccion = registroViewModel.registerUiState.direccion
-        var tipoDePredio = registroViewModel.registerUiState.tipoPredio
-        var nroCuentaPredio = registroViewModel.registerUiState.nroCuentaPredio
-        var tipoDeAutorizacion = registroViewModel.registerUiState.tipoDeAutorizacion
-        var estado = registroViewModel.registerUiState.estado
+    Spacer(modifier = Modifier.height(20.dp))
+    Text(
+        text = "Registrar recaudación",
+        fontWeight = FontWeight.Bold,
+        style = TextStyle(fontSize = 30.sp),
+        textAlign = TextAlign.Center
+    )
 
-        TextField(
-            label = { Text(text = "RUC") },
-            value = ruc.value,
-            singleLine = true,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-            onValueChange = { ruc.value = it },
-            colors = TextFieldDefaults.textFieldColors(
-                containerColor = Color.Transparent,
-                focusedIndicatorColor = Color.Transparent,
-                unfocusedIndicatorColor = Color.Transparent
-            ),
-            modifier = Modifier
-                .fillMaxWidth()
-                .border(1.dp, Color.Black, RoundedCornerShape(8.dp))
-
-        )
-        Spacer(modifier = Modifier.height(25.dp))
-        Button(
-            onClick = {
-                registroViewModel.getPredioPorRuc(ruc.value)
-            },
-            modifier = Modifier.width(200.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF000080))
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Search,
-                    contentDescription = "Search",
-                    tint = Color.White,
-                    modifier = Modifier.size(20.dp) // Tamaño del icono
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(text = "Buscar")
-            }
-        }
-
-        Spacer(modifier = Modifier.height(35.dp))
-        TextField(
-            label = { Text(text = "Nombre") },
-            value = nombrePredio,
-            singleLine = true,
-            enabled = false,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
-            onValueChange = { nombrePredio = it },
-            colors = TextFieldDefaults.textFieldColors(
-                focusedIndicatorColor = Color.Transparent,
-                unfocusedIndicatorColor = Color.Transparent
-            ),
-            modifier = Modifier
-                .fillMaxWidth()
-                .border(1.dp, Color.Black, RoundedCornerShape(8.dp))
-
-        )
-        Spacer(modifier = Modifier.height(25.dp))
-
-        TextField(
-            label = { Text(text = "Dirección") },
-            value = direccion,
-            singleLine = true,
-            enabled = false,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
-            onValueChange = { direccion = it },
-            colors = TextFieldDefaults.textFieldColors(
-                focusedIndicatorColor = Color.Transparent,
-                unfocusedIndicatorColor = Color.Transparent
-            ),
-            modifier = Modifier
-                .fillMaxWidth()
-                .border(1.dp, Color.Black, RoundedCornerShape(8.dp))
-
-        )
-        Spacer(modifier = Modifier.height(25.dp))
-
-        TextField(
-            label = { Text(text = "Tipo de predio") },
-            value = tipoDePredio,
-            singleLine = true,
-            enabled = false,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
-            onValueChange = { tipoDePredio = it },
-            colors = TextFieldDefaults.textFieldColors(
-                focusedIndicatorColor = Color.Transparent,
-                unfocusedIndicatorColor = Color.Transparent
-            ),
-            modifier = Modifier
-                .fillMaxWidth()
-                .border(1.dp, Color.Black, RoundedCornerShape(8.dp))
-
-        )
-        Spacer(modifier = Modifier.height(25.dp))
-
-        TextField(
-            label = { Text(text = "Nro. cuente predio") },
-            value = nroCuentaPredio.toString(),
-            singleLine = true,
-            enabled = false,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-            onValueChange = {  },
-            colors = TextFieldDefaults.textFieldColors(
-                focusedIndicatorColor = Color.Transparent,
-                unfocusedIndicatorColor = Color.Transparent
-            ),
-            modifier = Modifier
-                .fillMaxWidth()
-                .border(1.dp, Color.Black, RoundedCornerShape(8.dp))
-
-        )
-        Spacer(modifier = Modifier.height(25.dp))
-
-        TextField(
-            label = { Text(text = "Tipo de autorización") },
-            value = tipoDeAutorizacion,
-            singleLine = true,
-            enabled = false,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
-            onValueChange = { tipoDeAutorizacion = it },
-            colors = TextFieldDefaults.textFieldColors(
-                focusedIndicatorColor = Color.Transparent,
-                unfocusedIndicatorColor = Color.Transparent
-            ),
-            modifier = Modifier
-                .fillMaxWidth()
-                .border(1.dp, Color.Black, RoundedCornerShape(8.dp))
-
-        )
-        Spacer(modifier = Modifier.height(25.dp))
-
-        TextField(
-            label = { Text(text = "Estado") },
-            value = estado,
-            singleLine = true,
-            enabled = false,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
-            onValueChange = { estado = it },
-            colors = TextFieldDefaults.textFieldColors(
-                focusedIndicatorColor = Color.Transparent,
-                unfocusedIndicatorColor = Color.Transparent
-            ),
-            modifier = Modifier
-                .fillMaxWidth()
-                .border(1.dp, Color.Black, RoundedCornerShape(8.dp))
-
-        )
-        Spacer(modifier = Modifier.height(25.dp))
-
-        // Observa si hay un mensaje de error y muestra una alerta en consecuencia
-        val errorMessage = registroViewModel.errorMessage
-        if (errorMessage.value.isNotEmpty()) {
-            mostrarAlerta("Error", errorMessage = errorMessage.value,registroViewModel)
-        }
-
-        Box(modifier = Modifier.padding(40.dp, 0.dp, 40.dp, 0.dp)) {
-            Button(
-                onClick = {
-                    if(registroViewModel.registerUiState.idCuentaPredio != 0){
-                        onNext()
-                    }
-                },
-                colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent, contentColor = Color(0xFF000080)),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(50.dp)
-                    .width(100.dp)
-                    .border(
-                        width = 2.dp,
-                        color = Color(0xFF000080),
-                        shape = RoundedCornerShape(15.dp)
-                    )
-            ) {
-                Text(text = "Siguiente")
-            }
-        }
-
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun FormReceipt(registroViewModel: RegistroViewModel, navController: NavController, currentIndex: Int, onNext: () -> Unit){
-    FormStatus(imageRes = R.drawable.barradeprogreso3, title = "Información del recibo")
+    Spacer(modifier = Modifier.height(20.dp))
     Column(
         modifier = Modifier
             .fillMaxWidth(),
@@ -618,12 +206,27 @@ fun FormReceipt(registroViewModel: RegistroViewModel, navController: NavControll
 
         val nroRecibo = remember { mutableStateOf(TextFieldValue()) }
         val estadoRecibo = registroViewModel.registerUiState.estadoRecibo
-        val importe = registroViewModel.registerUiState.importe
+        val importeRecibo = registroViewModel.registerUiState.importeRecibo
+
+        val nrOperacion = remember { mutableStateOf(TextFieldValue()) }
+        var fechaOperacion: String by rememberSaveable {
+            mutableStateOf("")
+        }
+        val anio: Int
+        val mes: Int
+        val dia: Int
+        val mCalendar = Calendar.getInstance()
+        anio = mCalendar.get(Calendar.YEAR)
+        mes = mCalendar.get(Calendar.MONTH)
+        dia = mCalendar.get(Calendar.DAY_OF_MONTH)
+        val importeRecaudacion = remember { mutableStateOf(TextFieldValue()) }
+        val observacion = remember { mutableStateOf(TextFieldValue()) }
 
         TextField(
             label = { Text(text = "N° recibo") },
             value = nroRecibo.value,
             singleLine = true,
+            placeholder = { Text(text = "REC0001",color=Color.LightGray ) },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
             onValueChange = { nroRecibo.value = it },
             colors = TextFieldDefaults.textFieldColors(
@@ -652,224 +255,222 @@ fun FormReceipt(registroViewModel: RegistroViewModel, navController: NavControll
                     imageVector = Icons.Default.Search,
                     contentDescription = "Search",
                     tint = Color.White,
-                    modifier = Modifier.size(20.dp) // Tamaño del icono
+                    modifier = Modifier.size(30.dp) // Tamaño del icono
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(text = "Buscar")
             }
         }
-
         Spacer(modifier = Modifier.height(35.dp))
-        TextField(
-            label = { Text(text = "Estado del recibo") },
-            value = estadoRecibo,
-            singleLine = true,
-            enabled = false,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
-            onValueChange = {  },
-            colors = TextFieldDefaults.textFieldColors(
-                focusedIndicatorColor = Color.Transparent,
-                unfocusedIndicatorColor = Color.Transparent
-            ),
-            modifier = Modifier
-                .fillMaxWidth()
-                .border(1.dp, Color.Black, RoundedCornerShape(8.dp))
 
-        )
-        Spacer(modifier = Modifier.height(25.dp))
+        if (registroViewModel.registerUiState.idMantRecibo != 0) {
+            TextField(
+                label = { Text(text = "Estado del recibo") },
+                value = estadoRecibo,
+                singleLine = true,
+                enabled = false,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+                onValueChange = { },
+                colors = TextFieldDefaults.textFieldColors(
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent
+                ),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .border(1.dp, Color.Black, RoundedCornerShape(8.dp))
 
-        TextField(
-            label = { Text(text = "Importe") },
-            value = importe.toString(),
-            singleLine = true,
-            enabled = false,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-            onValueChange = {  },
-            colors = TextFieldDefaults.textFieldColors(
-                focusedIndicatorColor = Color.Transparent,
-                unfocusedIndicatorColor = Color.Transparent
-            ),
-            modifier = Modifier
-                .fillMaxWidth()
-                .border(1.dp, Color.Black, RoundedCornerShape(8.dp))
+            )
+            Spacer(modifier = Modifier.height(25.dp))
 
-        )
-        Spacer(modifier = Modifier.height(25.dp))
+
+            TextField(
+                label = { Text(text = "Monto del recibo") },
+                value = importeRecibo.toString(),
+                singleLine = true,
+                enabled = false,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                onValueChange = { },
+                colors = TextFieldDefaults.textFieldColors(
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent
+                ),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .border(1.dp, Color.Black, RoundedCornerShape(8.dp))
+
+            )
+            Spacer(modifier = Modifier.height(25.dp))
+
+            TextField(
+                label = { Text(text = "Número de operación") },
+                value = nrOperacion.value,
+                singleLine = true,
+                enabled = true,
+                placeholder = { Text(text = "202002118",color=Color.LightGray ) },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                onValueChange = { nrOperacion.value = it },
+                colors = TextFieldDefaults.textFieldColors(
+                    containerColor = Color.Transparent,
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent
+                ),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .border(1.dp, Color.Black, RoundedCornerShape(8.dp))
+
+            )
+            Spacer(modifier = Modifier.height(25.dp))
+
+            // Fecha de operacion
+
+            val mDataPickerDialog = DatePickerDialog(
+                LocalContext.current,
+                { Datepicker, anio: Int, mes: Int, dia: Int ->
+                    fechaOperacion = "$anio-${mes + 1}- $dia"
+                }, anio, mes, dia
+            )
+
+
+            Box(modifier = Modifier.fillMaxWidth()) {
+                Row {
+                    TextField(
+                        value = fechaOperacion,
+                        onValueChange = { fechaOperacion = it },
+                        readOnly = true,
+                        colors = TextFieldDefaults.textFieldColors(
+                            containerColor = Color.Transparent,
+                            focusedIndicatorColor = Color.Transparent,
+                            unfocusedIndicatorColor = Color.Transparent
+                        ),
+                        modifier = Modifier
+                            .border(1.dp, Color.Black, RoundedCornerShape(8.dp)),
+                        label = {
+                            Text(
+                                text = "Fecha de operación"
+                            )
+                        })
+                    Icon(
+                        imageVector = Icons.Filled.DateRange,
+                        contentDescription = null,
+                        modifier = Modifier
+                            .size(60.dp)
+                            .padding(4.dp)
+                            .clickable { mDataPickerDialog.show() })
+
+                }
+            }
+            Spacer(modifier = Modifier.height(25.dp))
+
+            TextField(
+                label = { Text(text = "Importe a pagar") },
+                value = importeRecaudacion.value,
+                singleLine = true,
+                enabled = true,
+                placeholder = { Text(text = "0.0",color=Color.LightGray ) },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                onValueChange = { importeRecaudacion.value = it },
+                colors = TextFieldDefaults.textFieldColors(
+                    containerColor = Color.Transparent,
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent
+                ),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .border(1.dp, Color.Black, RoundedCornerShape(8.dp))
+
+            )
+            Spacer(modifier = Modifier.height(25.dp))
+
+            TextField(
+                label = { Text(text = "Observación") },
+                value = observacion.value,
+                enabled = true,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+                onValueChange = { observacion.value = it },
+                colors = TextFieldDefaults.textFieldColors(
+                    containerColor = Color.Transparent,
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent
+                ),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(height = 90.dp)
+                    .border(1.dp, Color.Black, RoundedCornerShape(8.dp))
+
+            )
+            Spacer(modifier = Modifier.height(25.dp))
+
+            Box(modifier = Modifier.padding(40.dp, 0.dp, 40.dp, 0.dp)) {
+                Button(
+                    onClick = {
+                        if (registroViewModel.registerUiState.idMantRecibo != 0 && nrOperacion.value.text != "" && fechaOperacion != null
+                            && importeRecaudacion.value.text != "" && observacion.value.text != ""
+                        ) {
+
+                            val cuentaDTO =
+                                CuentaDTO(idCuenta = registroViewModel.registerUiState.idCuenta)
+                            val mantenimientoReciboDTO =
+                                MantenimientoReciboDTO(idMantenimientoRecibo = registroViewModel.registerUiState.idMantRecibo)
+                            val tipoMonedaDTO =
+                                TipoMonedaDTO(idTipoMoneda = registroViewModel.registerUiState.idTipoMoneda)
+                            val recaudacionEstadoDTO = RecaudacionEstadoDTO(idRecaudacionEstado = 4) // Registrado
+                            val cuentaPredioDTO =
+                                CuentaPredioDTO(idCuentaPredio = registroViewModel.registerUiState.idCuentaPredio)
+
+                            val recaudacionDTO = RecaudacionDTO(
+                                cuenta = cuentaDTO,
+                                mantenimientoRecibo = mantenimientoReciboDTO,
+                                noperacion = nrOperacion.value.text.toLong(),
+                                fechaOperacion = fechaOperacion,
+                                tipoMoneda = tipoMonedaDTO,
+                                importe = importeRecaudacion.value.text.toDouble(),
+                                recaudacionEstado = recaudacionEstadoDTO,
+                                cuentaPredio = cuentaPredioDTO,
+                                observacion = observacion.value.text
+                            )
+
+                            registroViewModel.guardarRecaudacion(recaudacionDTO)
+                            Toast.makeText(context, "Recaudación registrada!", Toast.LENGTH_SHORT)
+                                .show()
+                            navController.navigate(route = AppScreens.MainMenuScreen.route)
+                        } else {
+                            Toast.makeText(
+                                context,
+                                "Debe completar todos los campos",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color.Transparent,
+                        contentColor = Color(0xFF000080)
+                    ),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(50.dp)
+                        .width(100.dp)
+                        .border(
+                            width = 2.dp,
+                            color = Color(0xFF000080),
+                            shape = RoundedCornerShape(15.dp)
+                        )
+                ) {
+                    Text(text = "Guardar")
+                }
+            }
+        }
 
         // Observa si hay un mensaje de error y muestra una alerta en consecuencia
         val errorMessage = registroViewModel.errorMessage
         if (errorMessage.value.isNotEmpty()) {
-            mostrarAlerta("Error", errorMessage = errorMessage.value,registroViewModel)
+            mostrarAlerta("Error", errorMessage = errorMessage.value, registroViewModel)
         }
 
-        Box(modifier = Modifier.padding(40.dp, 0.dp, 40.dp, 0.dp)) {
-            Button(
-                onClick = {
-                    if(registroViewModel.registerUiState.idMantRecibo != 0){
-                        onNext()
-                    }
-                },
-                colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent, contentColor = Color(0xFF000080)),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(50.dp)
-                    .width(100.dp)
-                    .border(
-                        width = 2.dp,
-                        color = Color(0xFF000080),
-                        shape = RoundedCornerShape(15.dp)
-                    )
-            ) {
-                Text(text = "Siguiente")
-            }
-        }
 
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun FormCollection(registroViewModel: RegistroViewModel, navController: NavController, currentIndex: Int, onNext: () -> Unit) {
-    FormStatus(imageRes = R.drawable.barradeprogreso4, title = "Información de la recaudación")
-    val context = LocalContext.current.applicationContext
 
-    Column(
-        modifier = Modifier
-            .fillMaxWidth(),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally
-    ) {
-
-        val nroOperacion = remember { mutableStateOf(TextFieldValue()) }
-        val fecha = remember { mutableStateOf(TextFieldValue()) }
-        val tipoDeMoneda = registroViewModel.registerUiState.moneda
-        val importe = registroViewModel.registerUiState.importe
-        val estado = remember { mutableStateOf(TextFieldValue()) }
-        val observacion = remember { mutableStateOf(TextFieldValue()) }
-
-        TextField(
-            label = { Text(text = "Nro Operación") },
-            value = nroOperacion.value,
-            singleLine = true,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-            onValueChange = { nroOperacion.value = it },
-            colors = TextFieldDefaults.textFieldColors(
-                containerColor = Color.Transparent,
-                focusedIndicatorColor = Color.Transparent,
-                unfocusedIndicatorColor = Color.Transparent
-            ),
-            modifier = Modifier
-                .fillMaxWidth()
-                .border(1.dp, Color.Black, RoundedCornerShape(8.dp))
-
-        )
-        Spacer(modifier = Modifier.height(25.dp))
-
-        TextField(
-            label = { Text(text = "Fecha") },
-            value = fecha.value,
-            singleLine = true,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
-            onValueChange = { fecha.value = it },
-            colors = TextFieldDefaults.textFieldColors(
-                containerColor = Color.Transparent,
-                focusedIndicatorColor = Color.Transparent,
-                unfocusedIndicatorColor = Color.Transparent
-            ),
-            modifier = Modifier
-                .fillMaxWidth()
-                .border(1.dp, Color.Black, RoundedCornerShape(8.dp))
-
-        )
-        Spacer(modifier = Modifier.height(25.dp))
-
-        TextField(
-            label = { Text(text = "Tipo de Moneda") },
-            value = tipoDeMoneda.toString(),
-            singleLine = true,
-            enabled = false,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
-            onValueChange = { },
-            colors = TextFieldDefaults.textFieldColors(
-                focusedIndicatorColor = Color.Transparent,
-                unfocusedIndicatorColor = Color.Transparent
-            ),
-            modifier = Modifier
-                .fillMaxWidth()
-                .border(1.dp, Color.Black, RoundedCornerShape(8.dp))
-
-        )
-        Spacer(modifier = Modifier.height(25.dp))
-
-        TextField(
-            label = { Text(text = "Importe") },
-            value = importe.toString()   ,
-            singleLine = true,
-            enabled = false,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-            onValueChange = {  },
-            colors = TextFieldDefaults.textFieldColors(
-                focusedIndicatorColor = Color.Transparent,
-                unfocusedIndicatorColor = Color.Transparent
-            ),
-            modifier = Modifier
-                .fillMaxWidth()
-                .border(1.dp, Color.Black, RoundedCornerShape(8.dp))
-
-        )
-//        Spacer(modifier = Modifier.height(25.dp))
-//
-//        TextField(
-//            label = { Text(text = "Estado") },
-//            value = estado.value,
-//            singleLine = true,
-//            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
-//            onValueChange = { estado.value = it },
-//            colors = TextFieldDefaults.textFieldColors(
-//                containerColor = Color.Transparent,
-//                focusedIndicatorColor = Color.Transparent,
-//                unfocusedIndicatorColor = Color.Transparent
-//            ),
-//            modifier = Modifier
-//                .fillMaxWidth()
-//                .border(1.dp, Color.Black, RoundedCornerShape(8.dp))
-//
-//        )
-        Spacer(modifier = Modifier.height(25.dp))
-
-        TextField(
-            label = { Text(text = "Observación") },
-            value = observacion.value,
-            singleLine = true,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-            onValueChange = { observacion.value = it },
-            colors = TextFieldDefaults.textFieldColors(
-                containerColor = Color.Transparent,
-                focusedIndicatorColor = Color.Transparent,
-                unfocusedIndicatorColor = Color.Transparent
-            ),
-            modifier = Modifier
-                .fillMaxWidth()
-                .border(1.dp, Color.Black, RoundedCornerShape(8.dp))
-
-        )
-        Spacer(modifier = Modifier.height(25.dp))
-
-        Box(modifier = Modifier.padding(40.dp, 0.dp, 40.dp, 0.dp)) {
-            Button(
-                onClick = {
-                    Toast.makeText(context, "Recaudación registrada!", Toast.LENGTH_SHORT).show()
-                    navController.navigate(route = AppScreens.MainMenuScreen.route)
-                },
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF000080)),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(50.dp)
-                    .width(100.dp)
-            ) {
-                Text(text = "Guardar")
-            }
-        }
-        Spacer(modifier = Modifier.height(25.dp))
-    }
+fun DatePicker() {
+    val anio: Int
 }

@@ -6,9 +6,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.toUpperCase
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.recaudacion.network.CollectionsApi
+import com.example.recaudacion.network.RecaudacionDTO
 import com.example.recaudacion.network.RegistroState
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
@@ -25,72 +27,45 @@ class RegistroViewModel : ViewModel() {
         _errorMessage.value = ""
     }
 
-    fun getCuentaPorNroDocumento(nroDocumento: TextFieldValue) {
-        viewModelScope.launch {
-            try {
-                val result = CollectionsApi.retrofitService.getCuenta(nroDocumento.text)
-                registerUiState = registerUiState.copy(
-                    idCuenta = result.idCuenta.toInt(),
-                    nombre = result.nombre,
-                    banco = result.banco,
-                    moneda = result.moneda,
-                    nroCuenta = result.nroCuenta.toLong()
-                )
-            } catch (e: IOException) {
-                _errorMessage.value = "Error de red. Inténtelo de nuevo más tarde."
-            } catch (e: HttpException) {
-                if (e.code() == 500) {
-                    _errorMessage.value = "El nro de documento no existe."
-                } else {
-                    _errorMessage.value = "Ha ocurrido un error. Inténtelo de nuevo más tarde."
-                }
-            }
-        }
-    }
-
-    fun getPredioPorRuc(ruc: TextFieldValue) {
-        viewModelScope.launch {
-            try {
-                val result = CollectionsApi.retrofitService.getPredio(ruc.text)
-                Log.d("getPredioPorRuc"," ${result}")
-                registerUiState = registerUiState.copy(
-                    idCuentaPredio = result.idCuentaPredio.toInt(),
-                    nombrePredio = result.nombre,
-                    direccion = result.dirrecion,
-                    tipoPredio = result.tipoDePredio,
-                    nroCuentaPredio = result.nrCuentaPredio,
-                    tipoDeAutorizacion = result.tipoAutorizacion,
-                    estado = result.estado
-                )
-            } catch (e: IOException) {
-                _errorMessage.value = "Error de red. Inténtelo de nuevo más tarde."
-            } catch (e: HttpException) {
-                if (e.code() == 500) {
-                    _errorMessage.value = "El ruc no existe."
-                } else {
-                    _errorMessage.value = "Ha ocurrido un error. Inténtelo de nuevo más tarde."
-                }
-            }
-        }
-    }
-
     fun getMantenimientoReciboPorNroRecibo(nroRecibo : TextFieldValue){
         viewModelScope.launch {
             try {
                 val result = CollectionsApi.retrofitService.getMantenimientoRecibo(nroRecibo.text.toUpperCase())
                 Log.d("getMantReciboPorRecibo"," ${result}")
                 registerUiState = registerUiState.copy(
+                    // Mantenimiento del recibo
                     idMantRecibo = result.idMantRecibo.toInt(),
                     estadoRecibo = result.estadoRecibo,
-                    importe = result.importe
+                    importeRecibo = result.importe,
+                    idCuenta = result.idCuenta,
+                    idTipoMoneda = result.idTipoMoneda.toInt(),
+                    idCuentaPredio = result.idCuentaPredio.toInt()
+
                 )
             } catch (e: IOException) {
                 _errorMessage.value = "Error de red. Inténtelo de nuevo más tarde."
             } catch (e: HttpException) {
                 if (e.code() == 500) {
+                    _errorMessage.value = "Error interno en el servidor."
+                } else if (e.code() == 404){
                     _errorMessage.value = "El nro de recibo no existe."
                 } else {
                     _errorMessage.value = "Ha ocurrido un error. Inténtelo de nuevo más tarde."
+                }
+            }
+        }
+    }
+
+    fun guardarRecaudacion(recaudacionDTO: RecaudacionDTO){
+        viewModelScope.launch {
+            try {
+                val response = CollectionsApi.retrofitService.guardarRecaudacion(recaudacionDTO)
+                Log.d("Se guarda la recaudacion"," ${response}")
+            } catch (e: IOException) {
+                _errorMessage.value = "Error de red. Inténtelo de nuevo más tarde."
+            } catch (e: HttpException) {
+                if (e.code() == 500) {
+                    _errorMessage.value = "No se encontró el recibo."
                 }
             }
         }
