@@ -72,6 +72,7 @@ fun MainMenuPageScreen(
 
         state.recaudaciones.isNotEmpty() -> {
             LazyColumn(
+                // Modificador general de contenedor
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(10.dp)
@@ -84,6 +85,7 @@ fun MainMenuPageScreen(
                         horizontalArrangement = Arrangement.Start
                     ) {
                         Spacer(modifier = Modifier.height(10.dp))
+                        #Compose Imagen
                         Image(
                             painter = painterResource(R.drawable.logo),
                             contentDescription = "logo",
@@ -438,6 +440,7 @@ fun CardElevation(index: Int, recaudacion : Recaudacion) {
                 Spacer(modifier = Modifier.height(4.dp))
 
                 Text(
+                    //Extracción de respurse de texto
                     text = "${recaudacion.predio}",
                     fontSize = 16.sp,
                     style = MaterialTheme.typography.titleLarge,
@@ -463,6 +466,7 @@ fun CardElevation(index: Int, recaudacion : Recaudacion) {
 
                 Spacer(modifier = Modifier.width(4.dp))
 
+                //Extracción de resourse de texto
                 Text(text = "Fecha : ${recaudacion.fechaOperacion}")
 
                 Spacer(modifier = Modifier.width(8.dp))
