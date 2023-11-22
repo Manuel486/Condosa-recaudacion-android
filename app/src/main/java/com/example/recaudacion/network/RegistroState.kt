@@ -1,5 +1,8 @@
 package com.example.recaudacion.network
 
+//Esta clase es un modelo de datos que contiene información 
+// relacionada con registros de cuentas, predios y mantenimiento de recibos.
+
 data class RegistroState(
     // Informacion Personal
     val idCuenta: Int = 0,
