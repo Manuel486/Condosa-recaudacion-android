@@ -38,14 +38,38 @@ import com.example.recaudacion.R
 import com.example.recaudacion.navigation.AppScreens
 import com.example.recaudacion.network.Recaudacion
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MainMenuPageScreen(collectionsViewModel: MenuPrincipalViewModel, navController: NavController, modifier: Modifier = Modifier) {
+fun MainMenuPageScreen(
+    collectionsViewModel: MenuPrincipalViewModel,
+    navController: NavController,
+    modifier: Modifier = Modifier
+) {
     val state = collectionsViewModel.collectionsUiState
+    val context = LocalContext.current
+    var expanded by remember { mutableStateOf(false) }
+    var filtroActual by remember { mutableStateOf("Sin ningún filtro") }
+
+    var selectedRechazado by remember { mutableStateOf(false) }
+    var selectedAnulado by remember { mutableStateOf(false) }
+    var selectedRegistrado by remember { mutableStateOf(false) }
+    var selectedValidado by remember { mutableStateOf(false) }
+
+    // Nuevo estado inmutable para las recaudaciones ordenadas
+    val recaudacionesFiltradas = remember { mutableStateOf<List<Recaudacion>>(emptyList()) }
+
+    val estadosSeleccionados = mutableSetOf<String>()
+
+    // Actualiza la lista ordenada al inicio y cuando cambia la lista original
+    LaunchedEffect(state.recaudaciones) {
+        recaudacionesFiltradas.value = state.recaudaciones
+    }
 
     when {
         state.recaudaciones.isEmpty() -> {
             LoadingScreen(modifier = modifier.fillMaxSize())
         }
+
         state.recaudaciones.isNotEmpty() -> {
             LazyColumn(
                 modifier = Modifier
@@ -106,21 +130,242 @@ fun MainMenuPageScreen(collectionsViewModel: MenuPrincipalViewModel, navControll
                 }
 
                 item {
+                    Spacer(modifier = Modifier.height(15.dp))
+                }
+
+                item {
+
+                    Column(modifier = Modifier.fillMaxWidth()) {
+                        Row(
+                            horizontalArrangement = Arrangement.SpaceEvenly,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            FilterChip(
+                                onClick = {
+                                    selectedRechazado = !selectedRechazado
+                                    if (selectedRechazado) {
+                                        estadosSeleccionados.add("Rechazado")
+                                        recaudacionesFiltradas.value =
+                                            state.recaudaciones.filter { it.estado in estadosSeleccionados }
+                                    } else {
+                                        estadosSeleccionados.remove("Rechazado")
+                                        if (estadosSeleccionados.isNotEmpty()) {
+                                            recaudacionesFiltradas.value =
+                                                state.recaudaciones.filter { it.estado in estadosSeleccionados }
+                                        } else {
+                                            recaudacionesFiltradas.value = state.recaudaciones
+                                        }
+                                    }
+                                },
+                                label = {
+                                    Text("Rechazado")
+                                },
+                                selected = selectedRechazado,
+                                leadingIcon = if (selectedRechazado) {
+                                    {
+                                        Icon(
+                                            imageVector = Icons.Filled.Done,
+                                            contentDescription = "Done icon",
+                                            modifier = Modifier.size(FilterChipDefaults.IconSize)
+                                        )
+                                    }
+                                } else {
+                                    null
+                                },
+                            )
+
+                            FilterChip(
+                                onClick = {
+                                    selectedAnulado = !selectedAnulado
+                                    if (selectedAnulado) {
+                                        estadosSeleccionados.add("Anulado")
+                                        recaudacionesFiltradas.value =
+                                            state.recaudaciones.filter { it.estado in estadosSeleccionados }
+                                    } else {
+                                        estadosSeleccionados.remove("Anulado")
+                                        if (estadosSeleccionados.isNotEmpty()) {
+                                            recaudacionesFiltradas.value =
+                                                state.recaudaciones.filter { it.estado in estadosSeleccionados }
+                                        } else {
+                                            recaudacionesFiltradas.value = state.recaudaciones
+                                        }
+                                    }
+                                },
+                                label = {
+                                    Text("Anulado")
+                                },
+                                selected = selectedAnulado,
+                                leadingIcon = if (selectedAnulado) {
+                                    {
+                                        Icon(
+                                            imageVector = Icons.Filled.Done,
+                                            contentDescription = "Done icon",
+                                            modifier = Modifier.size(FilterChipDefaults.IconSize)
+                                        )
+                                    }
+                                } else {
+                                    null
+                                },
+                            )
+
+                            FilterChip(
+                                onClick = {
+                                    selectedRegistrado = !selectedRegistrado
+                                    if (selectedRegistrado) {
+                                        estadosSeleccionados.add("Registrado")
+                                        recaudacionesFiltradas.value =
+                                            state.recaudaciones.filter { it.estado in estadosSeleccionados }
+                                    } else {
+                                        estadosSeleccionados.remove("Registrado")
+                                        if (estadosSeleccionados.isNotEmpty()) {
+                                            recaudacionesFiltradas.value =
+                                                state.recaudaciones.filter { it.estado in estadosSeleccionados }
+                                        } else {
+                                            recaudacionesFiltradas.value = state.recaudaciones
+                                        }
+                                    }
+                                },
+                                label = {
+                                    Text("Registrado")
+                                },
+                                selected = selectedRegistrado,
+                                leadingIcon = if (selectedRegistrado) {
+                                    {
+                                        Icon(
+                                            imageVector = Icons.Filled.Done,
+                                            contentDescription = "Done icon",
+                                            modifier = Modifier.size(FilterChipDefaults.IconSize)
+                                        )
+                                    }
+                                } else {
+                                    null
+                                },
+                            )
+                        }
+
+                        Row(
+                            horizontalArrangement = Arrangement.SpaceEvenly,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+
+                            FilterChip(
+                                onClick = {
+                                    selectedValidado = !selectedValidado
+                                    if (selectedValidado) {
+                                        estadosSeleccionados.add("Validado")
+                                        recaudacionesFiltradas.value =
+                                            state.recaudaciones.filter { it.estado in estadosSeleccionados }
+                                    } else {
+                                        estadosSeleccionados.remove("Validado")
+                                        if (estadosSeleccionados.isNotEmpty()) {
+                                            recaudacionesFiltradas.value =
+                                                state.recaudaciones.filter { it.estado in estadosSeleccionados }
+                                        } else {
+                                            recaudacionesFiltradas.value = state.recaudaciones
+                                        }
+                                    }
+                                },
+                                label = {
+                                    Text("Validado")
+                                },
+                                selected = selectedValidado,
+                                leadingIcon = if (selectedValidado) {
+                                    {
+                                        Icon(
+                                            imageVector = Icons.Filled.Done,
+                                            contentDescription = "Done icon",
+                                            modifier = Modifier.size(FilterChipDefaults.IconSize)
+                                        )
+                                    }
+                                } else {
+                                    null
+                                },
+                            )
+                        }
+                    }
+
+                }
+
+                item {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(10.dp, 0.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row {
+                            Text(text = "Filtro: ", fontWeight = FontWeight.Bold)
+                            Text(
+                                text = filtroActual,
+                                softWrap = true,
+                                modifier = Modifier.padding(end = 10.dp)
+                            )
+                        }
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .wrapContentSize(Alignment.TopEnd)
+                        ) {
+                            Button(onClick = { expanded = !expanded }) {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.filter),
+                                    contentDescription = "More",
+                                    modifier = Modifier.size(24.dp)
+                                )
+                            }
+
+                            DropdownMenu(
+                                expanded = expanded,
+                                onDismissRequest = { expanded = false }
+                            ) {
+                                DropdownMenuItem(
+                                    text = { Text("Menor a mayor según importe") },
+                                    onClick = {
+                                        recaudacionesFiltradas.value =
+                                            state.recaudaciones.sortedBy { it.importe }
+                                        filtroActual = "Menor a mayor según importe"
+                                        Toast.makeText(
+                                            context,
+                                            "Ordenado de menor a mayor según importe",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    }
+                                )
+                                DropdownMenuItem(
+                                    text = { Text("Mayor a menor según importe") },
+                                    onClick = {
+                                        recaudacionesFiltradas.value =
+                                            state.recaudaciones.sortedByDescending { it.importe }
+                                        filtroActual = "Mayor a menor según importe"
+                                        Toast.makeText(
+                                            context,
+                                            "Ordenado de mayor a menor según importe",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    }
+                                )
+                            }
+                        }
+                    }
+                }
+
+                item {
                     Spacer(modifier = Modifier.height(20.dp))
                 }
 
-                itemsIndexed(state.recaudaciones) { index,item ->
-                    CardElevation(index,item)
+                // Usa sortedRecaudaciones en lugar de state.recaudaciones
+                itemsIndexed(recaudacionesFiltradas.value) { index, item ->
+                    CardElevation(index, item)
                     Spacer(modifier = Modifier.height(10.dp))
                 }
             }
         }
+
         else -> {
-            ErrorScreen( modifier = modifier.fillMaxSize())
+            ErrorScreen(modifier = modifier.fillMaxSize())
         }
     }
-
-    /**/
 }
 
 @Composable
